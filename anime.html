@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperFlix - Série</title>
+    <title>SuperFlix - Anime</title>
     <style>
         :root {
             --primary-color: #e50914;
@@ -394,7 +394,7 @@
 </head>
 <body>
     <div class="netflix-header">
-        <div class="netflix-logo">SÉRIE</div>
+        <div class="netflix-logo">ANIME</div>
         <div class="header-right">
             <div class="search-dropdown">
                 <svg class="search-icon" viewBox="0 0 24 24" width="24" height="24">
@@ -463,7 +463,7 @@
         async function loadSeriesDetails() {
             const seriesId = new URLSearchParams(window.location.search).get("id");
             if (!seriesId) {
-                alert("ID da série não encontrado");
+                alert("ID do anime não encontrado");
                 return;
             }
 
@@ -508,7 +508,7 @@
 
             } catch (error) {
                 console.error('Erro:', error);
-                alert("Erro ao carregar detalhes da série");
+                alert("Erro ao carregar detalhes do anime");
             }
         }
 
