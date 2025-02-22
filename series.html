@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DzFlix - Série</title>
+    <title>SuperFlix - Série</title>
     <style>
         :root {
             --primary-color: #e50914;
@@ -398,186 +398,80 @@
         <div class="header-right">
             <div class="search-dropdown">
                 <svg class="search-icon" viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    <path fill="currentColor" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L21.99 18l-5-5zM9.5 14c-2.48 0-4.5-2.02-4.5-4.5S7.02 5 9.5 5 14 7.02 14 9.5 11.98 14 9.5 14z"></path>
                 </svg>
                 <div class="search-menu">
-                    <input type="text" class="search-input" placeholder="Buscar filmes, séries ou animes...">
-                    <div class="search-results" id="searchResults"></div>
+                    <input type="text" class="search-input" placeholder="Pesquisar...">
+                    <div class="search-results"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="series-banner" id="seriesBanner">
+    <div class="series-banner" style="background-image: url('https://path_to_banner_image.jpg');">
         <div class="banner-overlay"></div>
         <div class="series-header">
-            <h1 class="series-title" id="seriesTitle">Carregando...</h1>
+            <h1 class="series-title">Nome da Série</h1>
             <div class="series-meta">
-                <span id="seriesYear"></span>
-                <span class="series-rating" id="seriesRating"></span>
+                <span class="series-rating">16+</span>
+                <span>2023</span>
             </div>
             <div class="action-buttons">
-                <button class="play-button" id="watchButton">▶ Assistir</button>
-                <button class="more-info-button">ℹ Mais informações</button>
+                <button class="play-button" onclick="openEpisodeSelector()">Assistir</button>
+                <button class="more-info-button">Mais informações</button>
             </div>
         </div>
+    </div>
+
+    <div class="episode-selector">
+        <h2>Selecione um episódio</h2>
+        <select id="seasonSelect" class="season-select">
+            <!-- Seasons will be populated dynamically -->
+        </select>
+        <div class="episode-list">
+            <!-- Episodes will be populated dynamically -->
+        </div>
+    </div>
+
+    <div class="modal-overlay"></div>
+
+    <div class="video-player">
+        <iframe id="animeFrame"></iframe>
     </div>
 
     <div class="series-details">
         <div class="synopsis">
             <h2>Sinopse</h2>
-            <p id="seriesSynopsis"></p>
+            <p>Aqui vai a sinopse da série.</p>
         </div>
         <div class="cast-section">
-            <h2>Elenco Principal</h2>
-            <div class="cast-grid" id="castGrid"></div>
+            <h2>Elenco</h2>
+            <div class="cast-grid">
+                <!-- Cast members will be populated dynamically -->
+            </div>
         </div>
-    </div>
-
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="episode-selector" id="episodeSelector">
-            <button class="close-button">&times;</button>
-            <h2>Selecionar Episódio</h2>
-            <select class="season-select" id="seasonSelect">
-                <option value="">Selecione a Temporada</option>
-            </select>
-            <div class="episode-list" id="episodeList"></div>
-        </div>
-    </div>
-
-    <div class="video-player" id="videoPlayer">
-        <iframe id="animeFrame" allowfullscreen></iframe>
     </div>
 
     <script>
-        const API_KEY = 'cf72f14362cff1da8bed9fa86831de66';
-        const BASE_URL = 'https://api.themoviedb.org/3';
-        const IMG_URL = 'https://image.tmdb.org/t/p/original';
-        const POSTER_URL = 'https://image.tmdb.org/t/p/w200';
-        const PROFILE_URL = 'https://image.tmdb.org/t/p/w200';
-        const STILL_URL = 'https://image.tmdb.org/t/p/w300';
-        const ANIME_API_URL = 'https://animeblackmarketapi.com/player/tv';
+        const ANIME_API_URL = "https://api.example.com";
+        const modalOverlay = document.querySelector('.modal-overlay');
+        const episodeSelector = document.querySelector('.episode-selector');
+        const videoPlayer = document.querySelector('.video-player');
+        const animeFrame = document.getElementById('animeFrame');
+        const searchMenu = document.querySelector('.search-menu');
+        const searchInput = document.querySelector('.search-input');
+        const searchResults = document.querySelector('.search-results');
+        const closeVideoButton = document.createElement('button');
 
-        let currentSeriesData = null;
-
-        async function loadSeriesDetails() {
-            const seriesId = new URLSearchParams(window.location.search).get("id");
-            if (!seriesId) {
-                alert("ID da série não encontrado");
-                return;
-            }
-
-            try {
-                const seriesResponse = await fetch(`${BASE_URL}/tv/${seriesId}?api_key=${API_KEY}&language=pt-BR`);
-                const seriesData = await seriesResponse.json();
-                currentSeriesData = seriesData;
-
-                const creditsResponse = await fetch(`${BASE_URL}/tv/${seriesId}/credits?api_key=${API_KEY}&language=pt-BR`);
-                const creditsData = await creditsResponse.json();
-
-                document.getElementById("seriesBanner").style.backgroundImage = `url(${IMG_URL}${seriesData.backdrop_path})`;
-                document.getElementById("seriesTitle").innerText = seriesData.name;
-                document.getElementById("seriesYear").innerText = new Date(seriesData.first_air_date).getFullYear();
-                document.getElementById("seriesRating").innerText = `${seriesData.vote_average.toFixed(1)}/10`;
-                document.getElementById("seriesSynopsis").innerText = seriesData.overview;
-
-                const castGrid = document.getElementById("castGrid");
-                castGrid.innerHTML = ''; // Clear existing content
-                creditsData.cast.slice(0, 6).forEach(actor => {
-                    const actorElement = document.createElement("div");
-                    actorElement.classList.add("cast-member");
-                    actorElement.innerHTML = `
-                        <img src="${actor.profile_path ? PROFILE_URL + actor.profile_path : 'https://via.placeholder.com/150'}" 
-                             alt="${actor.name}">
-                        <p>${actor.name}</p>
-                        <small>${actor.character}</small>
-                    `;
-                    castGrid.appendChild(actorElement);
-                });
-
-                const seasonSelect = document.getElementById("seasonSelect");
-                seasonSelect.innerHTML = '<option value="">Selecione a Temporada</option>';
-// Add seasons to select dropdown
-                seriesData.seasons.forEach(season => {
-                    seasonSelect.innerHTML += `
-                        <option value="${season.season_number}">
-                            Temporada ${season.season_number}
-                        </option>
-                    `;
-                });
-
-            } catch (error) {
-                console.error('Erro:', error);
-                alert("Erro ao carregar detalhes da série");
-            }
+        function openEpisodeSelector() {
+            episodeSelector.classList.add('active');
+            modalOverlay.classList.add('active');
         }
 
-        // Episode selection and playback
-        const watchButton = document.getElementById("watchButton");
-        const modalOverlay = document.getElementById("modalOverlay");
-        const episodeSelector = document.getElementById("episodeSelector");
-        const seasonSelect = document.getElementById("seasonSelect");
-        const episodeList = document.getElementById("episodeList");
-        const closeButton = document.querySelector(".close-button");
-        const videoPlayer = document.getElementById("videoPlayer");
-        const animeFrame = document.getElementById("animeFrame");
-
-        watchButton.addEventListener('click', () => {
-            modalOverlay.classList.add('active');
-            episodeSelector.classList.add('active');
-        });
-
-        closeButton.addEventListener('click', () => {
-            modalOverlay.classList.remove('active');
+        function closeEpisodeSelector() {
             episodeSelector.classList.remove('active');
-        });
-
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
-                modalOverlay.classList.remove('active');
-                episodeSelector.classList.remove('active');
-            }
-        });
-
-        seasonSelect.addEventListener('change', async (e) => {
-            const seasonNumber = e.target.value;
-            if (!seasonNumber) {
-                episodeList.innerHTML = '';
-                return;
-            }
-
-            try {
-                const seriesId = new URLSearchParams(window.location.search).get("id");
-                const response = await fetch(
-                    `${BASE_URL}/tv/${seriesId}/season/${seasonNumber}?api_key=${API_KEY}&language=pt-BR`
-                );
-                const seasonData = await response.json();
-
-                episodeList.innerHTML = seasonData.episodes.map(episode => `
-                    <div class="episode-item" data-episode="${episode.episode_number}">
-                        <img class="episode-thumbnail" 
-                             src="${episode.still_path ? STILL_URL + episode.still_path : 'https://via.placeholder.com/300x170'}" 
-                             alt="Episódio ${episode.episode_number}">
-                        <div class="episode-info">
-                            <div class="episode-number">Episódio ${episode.episode_number}</div>
-                            <h3 class="episode-title">${episode.name}</h3>
-                            <p class="episode-overview">${episode.overview || 'Nenhuma descrição disponível.'}</p>
-                        </div>
-                    </div>
-                `).join('');
-
-                document.querySelectorAll('.episode-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        const episodeNumber = item.getAttribute('data-episode');
-                        playEpisode(seasonNumber, episodeNumber);
-                    });
-                });
-
-            } catch (error) {
-                console.error('Erro ao carregar episódios:', error);
-                episodeList.innerHTML = '<p class="search-error">Erro ao carregar episódios</p>';
-            }
-        });
+            modalOverlay.classList.remove('active');
+        }
 
         function playEpisode(seasonNumber, episodeNumber) {
             const animeId = new URLSearchParams(window.location.search).get("id");
@@ -618,74 +512,31 @@
             }
         }
 
-        // Search functionality
-        const searchIcon = document.querySelector('.search-icon');
-        const searchMenu = document.querySelector('.search-menu');
-        const searchInput = document.querySelector('.search-input');
-        const searchResults = document.getElementById('searchResults');
-
-        searchIcon.addEventListener('click', () => {
-            searchMenu.classList.toggle('active');
-            if (searchMenu.classList.contains('active')) {
-                searchInput.focus();
-            }
-        });
-
-        let searchTimeout = null;
-        searchInput.addEventListener('input', async (e) => {
-            const query = e.target.value.trim();
-            if (query.length < 2) {
-                searchResults.innerHTML = '';
+        searchInput.addEventListener('input', function() {
+            const query = searchInput.value.toLowerCase();
+            if (query.length < 3) {
+                searchMenu.classList.remove('active');
                 return;
             }
 
-            if (searchTimeout) {
-                clearTimeout(searchTimeout);
-            }
-
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const response = await fetch(
-                        `${BASE_URL}/search/tv?api_key=${API_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`
-                    );
-                    const data = await response.json();
-
-                    const filteredResults = data.results
-                        .filter(series => series.poster_path)
-                        .slice(0, 8);
-
-                    searchResults.innerHTML = filteredResults.map(series => `
-                        <div class="search-result-item" data-id="${series.id}">
-                            <img src="${POSTER_URL + series.poster_path}" alt="${series.name}">
-                            <div>
-                                <div>${series.name}</div>
-                                <small>${series.first_air_date ? new Date(series.first_air_date).getFullYear() : 'Data desconhecida'}</small>
-                                <small>${series.vote_average ? series.vote_average.toFixed(1) + '/10' : ''}</small>
-                            </div>
-                        </div>
-                    `).join('');
-
-                    document.querySelectorAll('.search-result-item').forEach(item => {
-                        item.addEventListener('click', () => {
-                            const seriesId = item.getAttribute('data-id');
-                            window.location.href = `serie.html?id=${seriesId}`;
+            fetch(`${ANIME_API_URL}/search?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    searchResults.innerHTML = '';
+                    if (data.results.length > 0) {
+                        data.results.forEach(result => {
+                            const item = document.createElement('div');
+                            item.classList.add('search-result-item');
+                            item.innerHTML = `<img src="${result.image}" alt="${result.title}"><span>${result.title}</span>`;
+                            searchResults.appendChild(item);
                         });
-                    });
-                } catch (error) {
-                    console.error('Erro na busca:', error);
-                    searchResults.innerHTML = '<div class="search-error">Erro ao realizar a busca</div>';
-                }
-            }, 300);
+                        searchMenu.classList.add('active');
+                    } else {
+                        searchResults.innerHTML = '<p>Nenhum resultado encontrado</p>';
+                        searchMenu.classList.add('active');
+                    }
+                });
         });
-
-        document.addEventListener('click', (e) => {
-            if (!searchMenu.contains(e.target) && e.target !== searchIcon) {
-                searchMenu.classList.remove('active');
-            }
-        });
-
-        // Initialize page
-        loadSeriesDetails();
     </script>
 </body>
 </html>
