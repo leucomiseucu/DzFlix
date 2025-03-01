@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Rota /inicio -> Servir index.html
 router.get('/inicio', (req, res) => {
-    res.sendFile(path.join(__dirname, '../index.html')); // Caminho correto para index.html
+    res.sendFile(path.join(__dirname, '/index.html')); // Caminho correto para index.html
 });
 
 module.exports = router;
